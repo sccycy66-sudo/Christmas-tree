@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>圣诞树</title>
 
   <!-- Fonts -->
@@ -26,8 +26,8 @@
       --bg:#000000;
       --gold:#d4af37;
       --cream:#fceea7;
-      --ui-border: rgba(212,175,55,0.55);
       --glass: rgba(255,255,255,0.08);
+      --border: rgba(212,175,55,0.55);
     }
     html,body{
       width:100%;
@@ -37,72 +37,40 @@
       overflow:hidden;
       color:var(--cream);
       font-family: "Times New Roman", Times, serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    #app{
-      position:fixed;
-      inset:0;
-    }
-    canvas#webgl{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      display:block;
-    }
+    #app{ position:fixed; inset:0; }
+    canvas#webgl{ position:absolute; inset:0; width:100%; height:100%; display:block; }
 
     /* Loader */
     #loader{
-      position:fixed;
-      inset:0;
-      background:#000;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      z-index:9999;
-      opacity:1;
-      transition: opacity 900ms ease;
-      pointer-events:auto;
+      position:fixed; inset:0; background:#000;
+      display:flex; align-items:center; justify-content:center; flex-direction:column;
+      z-index:9999; opacity:1; transition: opacity 900ms ease; pointer-events:auto;
     }
-    #loader.fade-out{
-      opacity:0;
-      pointer-events:none;
-    }
+    #loader.fade-out{ opacity:0; pointer-events:none; }
     .spinner{
-      width:40px;
-      height:40px;
-      border-radius:50%;
+      width:40px; height:40px; border-radius:50%;
       border:1px solid rgba(212,175,55,0.25);
       border-top:1px solid var(--gold);
       animation: spin 0.95s linear infinite;
       box-shadow: 0 0 18px rgba(212,175,55,0.18);
     }
     #loader .label{
-      margin-top:14px;
-      letter-spacing: 0.18em;
-      font-size: 12px;
+      margin-top:14px; letter-spacing:0.18em; font-size:12px;
       color: rgba(252,238,167,0.9);
-      text-transform: uppercase;
+      text-transform:uppercase; text-align:center; padding:0 18px;
     }
-    @keyframes spin{
-      to{ transform: rotate(360deg); }
-    }
+    @keyframes spin{ to{ transform: rotate(360deg);} }
 
     /* UI */
-    #ui{
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:10;
-    }
+    #ui{ position:fixed; inset:0; pointer-events:none; z-index:10; }
+    #uiContainer{ transition: opacity 350ms ease; }
     #ui .top{
-      position:absolute;
-      top:18px;
-      left:0;
-      right:0;
-      display:flex;
-      justify-content:center;
-      pointer-events:none;
+      position:absolute; top: env(safe-area-inset-top, 0px);
+      padding-top:18px; left:0; right:0;
+      display:flex; justify-content:center; pointer-events:none;
     }
     h1{
       margin:0;
@@ -111,17 +79,18 @@
       font-size:56px;
       letter-spacing:0.04em;
       background: linear-gradient(90deg, #ffffff, var(--cream), var(--gold));
-      -webkit-background-clip:text;
-      background-clip:text;
+      -webkit-background-clip:text; background-clip:text;
       color:transparent;
       text-shadow:
         0 0 10px rgba(252,238,167,0.22),
         0 0 22px rgba(212,175,55,0.22);
       user-select:none;
     }
+    @media (max-width: 520px){ h1{ font-size: 40px; } }
+
     .upload-wrapper{
       position:absolute;
-      top:96px;
+      top: 96px;
       left:50%;
       transform:translateX(-50%);
       display:flex;
@@ -130,14 +99,13 @@
       align-items:center;
       pointer-events:auto;
     }
+    @media (max-width: 520px){ .upload-wrapper{ top: 78px; } }
+
     .btn{
-      position:relative;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
+      display:inline-flex; align-items:center; justify-content:center;
       padding:12px 18px;
       border-radius:14px;
-      border:1px solid var(--ui-border);
+      border:1px solid var(--border);
       background: var(--glass);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
@@ -147,50 +115,40 @@
       font-size:13px;
       text-transform:uppercase;
       cursor:pointer;
-      box-shadow:
-        0 10px 30px rgba(0,0,0,0.35),
-        inset 0 0 0 1px rgba(255,255,255,0.04);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
       transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
       user-select:none;
+      -webkit-tap-highlight-color: transparent;
     }
     .btn:hover{
       transform: translateY(-1px);
       border-color: rgba(212,175,55,0.8);
-      box-shadow:
-        0 14px 36px rgba(0,0,0,0.45),
-        0 0 18px rgba(212,175,55,0.12);
+      box-shadow: 0 14px 36px rgba(0,0,0,0.45), 0 0 18px rgba(212,175,55,0.12);
     }
-    .btn:active{
-      transform: translateY(0px) scale(0.99);
-    }
+    .btn:active{ transform: translateY(0px) scale(0.99); }
+
+    #fileInput{ display:none; }
+
     .hint{
       font-size:12px;
       letter-spacing:0.08em;
       color: rgba(252,238,167,0.75);
       user-select:none;
       text-shadow: 0 0 12px rgba(212,175,55,0.08);
-    }
-    #fileInput{
-      display:none;
-    }
-
-    /* UI hidden toggle */
-    .ui-hidden{
-      opacity:0;
-      pointer-events:none;
-    }
-    #uiContainer{
-      transition: opacity 350ms ease;
+      text-align:center;
+      padding: 0 18px;
     }
 
-    /* Webcam (hidden) */
+    .ui-hidden{ opacity:0; pointer-events:none; }
+
+    /* Webcam (hidden container) */
     #cv{
       position:fixed;
       right:12px;
-      bottom:12px;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
       width:180px;
       height:140px;
-      opacity:0; /* invisible container */
+      opacity:0;
       pointer-events:none;
       z-index:9;
       display:flex;
@@ -198,18 +156,53 @@
       align-items:flex-end;
       justify-content:flex-end;
     }
-    #cv video{
+    #cv video, #cv canvas{
       width:160px;
       height:120px;
+      border-radius:10px;
+      display:block;
       object-fit:cover;
-      border-radius:10px;
-      display:block;
     }
-    #cv canvas{
-      width:160px;
-      height:120px;
-      border-radius:10px;
+
+    /* Toast */
+    #toast{
+      position:fixed;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      z-index:10001;
+      display:none;
+      width:min(760px, calc(100vw - 26px));
+      border-radius:16px;
+      border:1px solid rgba(212,175,55,0.35);
+      background: rgba(0,0,0,0.62);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: rgba(252,238,167,0.95);
+      padding: 12px 14px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+      opacity:0;
+      transition: opacity 260ms ease, transform 260ms ease;
+    }
+    #toast.show{
       display:block;
+      opacity:1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+    #toast .t-title{
+      font-family:"Cinzel", serif;
+      font-weight:700;
+      letter-spacing:0.06em;
+      text-transform:uppercase;
+      margin:0 0 6px;
+      font-size: 12px;
+    }
+    #toast .t-body{
+      margin:0;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(252,238,167,0.82);
+      word-break: break-word;
     }
   </style>
 </head>
@@ -218,28 +211,31 @@
   <div id="app">
     <canvas id="webgl"></canvas>
 
-    <!-- Loader -->
     <div id="loader" aria-label="loading">
       <div class="spinner"></div>
       <div class="label">LOADING HOLIDAY MAGIC</div>
     </div>
 
-    <!-- UI -->
     <div id="ui">
       <div id="uiContainer">
-        <div class="top">
-          <h1>Merry Christmas</h1>
-        </div>
+        <div class="top"><h1>Merry Christmas</h1></div>
 
         <div class="upload-wrapper">
-          <label class="btn" for="fileInput">ADD MEMORIES</label>
-          <input id="fileInput" type="file" accept="image/*" />
+          <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <label class="btn" for="fileInput">ADD MEMORIES</label>
+            <input id="fileInput" type="file" accept="image/*" />
+            <button id="musicBtn" class="btn" type="button">MUSIC: OFF</button>
+          </div>
           <div class="hint">Press 'H' to Hide Controls</div>
         </div>
       </div>
     </div>
 
-    <!-- Hidden CV elements -->
+    <div id="toast" aria-live="polite">
+      <div class="t-title" id="toastTitle">Notice</div>
+      <p class="t-body" id="toastBody"></p>
+    </div>
+
     <div id="cv">
       <video id="video" playsinline muted></video>
       <canvas id="infer" width="160" height="120"></canvas>
@@ -255,17 +251,11 @@
     import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 
     // =========================================================
-    // Global STATE (mode + gesture data)
+    // Global STATE
     // =========================================================
     const STATE = {
-      mode: "TREE",        // TREE | SCATTER | FOCUS
-      gesture: {
-        palmX: 0.5,
-        palmY: 0.5,
-        pinch: false,
-        fist: false,
-        open: false
-      },
+      mode: "TREE", // TREE | SCATTER | FOCUS
+      gesture: { palmX: 0.5, palmY: 0.5, pinch: false, fist: false, open: false },
       focusTargetId: null,
       lastModeChangeAt: 0
     };
@@ -277,17 +267,75 @@
     const loaderEl = document.getElementById("loader");
     const uiContainer = document.getElementById("uiContainer");
     const fileInput = document.getElementById("fileInput");
+    const musicBtn = document.getElementById("musicBtn");
+
+    const toast = document.getElementById("toast");
+    const toastTitle = document.getElementById("toastTitle");
+    const toastBody = document.getElementById("toastBody");
 
     const video = document.getElementById("video");
     const inferCanvas = document.getElementById("infer");
     const inferCtx = inferCanvas.getContext("2d", { willReadFrequently: true });
 
-    // H to hide UI
+    function showToast(title, body, ms = 5200) {
+      toastTitle.textContent = title;
+      toastBody.textContent = body;
+      toast.classList.add("show");
+      window.clearTimeout(showToast._t);
+      showToast._t = window.setTimeout(() => toast.classList.remove("show"), ms);
+    }
+
     window.addEventListener("keydown", (e) => {
-      if (e.key === "h" || e.key === "H") {
-        uiContainer.classList.toggle("ui-hidden");
+      if (e.key === "h" || e.key === "H") uiContainer.classList.toggle("ui-hidden");
+    });
+
+    // =========================================================
+    // Local BGM: my_bgm (place next to this HTML)
+    // Files recommended: my_bgm.mp3 (or .m4a/.ogg)
+    // =========================================================
+    const bgm = document.createElement("audio");
+    bgm.loop = true;
+    bgm.preload = "auto";
+
+    // Try common extensions; keep "my_bgm" as last fallback
+    for (const src of ["my_bgm.mp3", "my_bgm.m4a", "my_bgm.ogg", "my_bgm"]) {
+      const s = document.createElement("source");
+      s.src = src;
+      bgm.appendChild(s);
+    }
+
+    let bgmReady = false;
+    bgm.addEventListener("canplaythrough", () => { bgmReady = true; }, { once: true });
+    bgm.addEventListener("error", () => {
+      // Not fatal; user might not have provided an extension. We'll still allow attempt on click.
+      if (!bgmReady) showToast("BGM Missing", "没找到 my_bgm 音频文件。请把 my_bgm.mp3（推荐）放到和 HTML 同目录。", 8000);
+    });
+
+    // Warm up audio on first gesture (prevents “no sound” on mobile)
+    window.addEventListener("pointerdown", () => {
+      // No-op: just ensures the first user gesture exists before play()
+    }, { once: true });
+
+    musicBtn.addEventListener("click", async () => {
+      try {
+        if (bgm.paused) {
+          await bgm.play(); // must be user gesture
+          musicBtn.textContent = "MUSIC: ON";
+        } else {
+          bgm.pause();
+          musicBtn.textContent = "MUSIC: OFF";
+        }
+      } catch (e) {
+        showToast("Audio Blocked", "浏览器阻止自动播放：请再点一次 MUSIC，或先点一下页面再点 MUSIC。", 7000);
       }
     });
+
+    // =========================================================
+    // Scene constants (tree + star alignment)
+    // =========================================================
+    const TREE_HEIGHT = 24.0;
+    const TREE_RADIUS = 11.0;
+    const STAR_OFFSET = 0.9;
 
     // =========================================================
     // Three.js setup
@@ -305,18 +353,41 @@
     renderer.toneMappingExposure = 2.2;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-    // Environment: RoomEnvironment + PMREM
     const pmrem = new THREE.PMREMGenerator(renderer);
     const envTex = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
     scene.environment = envTex;
 
-    // Main group that rotates with hand tracking
     const mainGroup = new THREE.Group();
     scene.add(mainGroup);
 
+    // Tree top star
+    function createTreeTopStar() {
+      const geo = new THREE.IcosahedronGeometry(0.9, 0);
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(0xd4af37),
+        metalness: 1.0,
+        roughness: 0.18,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.08,
+        emissive: new THREE.Color(0xffe8a6),
+        emissiveIntensity: 1.25,
+        envMapIntensity: 1.4
+      });
+      const star = new THREE.Mesh(geo, mat);
+      star.position.set(0, TREE_HEIGHT / 2 + STAR_OFFSET, 0);
+
+      const light = new THREE.PointLight(0xffd36a, 2.1, 42, 2);
+      light.position.copy(star.position);
+
+      mainGroup.add(star);
+      mainGroup.add(light);
+
+      return { star, light };
+    }
+    const TREE_TOP = createTreeTopStar();
+
     // Lights
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambient);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
     const innerPoint = new THREE.PointLight(0xffa24a, 2, 120, 2);
     innerPoint.position.set(0, 10, 0);
@@ -334,19 +405,17 @@
     scene.add(spotCool);
     scene.add(spotCool.target);
 
-    // Postprocessing
+    // Post
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.45, // strength
-      0.4,  // radius
-      0.7   // threshold
+      0.45, 0.4, 0.7
     );
     composer.addPass(bloomPass);
 
     // =========================================================
-    // Helpers: textures
+    // Texture helpers
     // =========================================================
     function makeCanvasTexture(drawFn, w = 512, h = 512) {
       const c = document.createElement("canvas");
@@ -361,7 +430,6 @@
     }
 
     function makeCandyStripeTexture() {
-      // White base + red diagonal stripes
       return makeCanvasTexture((ctx, w, h) => {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, w, h);
@@ -374,12 +442,9 @@
         ctx.fillStyle = "#d02020";
         const stripeW = Math.floor(w * 0.12);
         const gap = Math.floor(w * 0.10);
-        for (let x = -w; x < w * 2; x += stripeW + gap) {
-          ctx.fillRect(x, -h, stripeW, h * 3);
-        }
+        for (let x = -w; x < w * 2; x += stripeW + gap) ctx.fillRect(x, -h, stripeW, h * 3);
         ctx.restore();
 
-        // Slight gloss
         const g = ctx.createLinearGradient(0, 0, 0, h);
         g.addColorStop(0, "rgba(255,255,255,0.35)");
         g.addColorStop(0.35, "rgba(255,255,255,0.06)");
@@ -394,7 +459,6 @@
         ctx.fillStyle = "#0b0b0b";
         ctx.fillRect(0, 0, w, h);
 
-        // soft vignette
         const rad = ctx.createRadialGradient(w*0.5, h*0.45, w*0.08, w*0.5, h*0.5, w*0.68);
         rad.addColorStop(0, "rgba(252,238,167,0.22)");
         rad.addColorStop(0.55, "rgba(212,175,55,0.10)");
@@ -402,7 +466,6 @@
         ctx.fillStyle = rad;
         ctx.fillRect(0, 0, w, h);
 
-        // subtle stars
         ctx.fillStyle = "rgba(255,255,255,0.55)";
         for (let i = 0; i < 160; i++) {
           const x = Math.random() * w;
@@ -415,7 +478,6 @@
         }
         ctx.globalAlpha = 1;
 
-        // Text
         ctx.font = "700 54px Cinzel, serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -429,7 +491,6 @@
         ctx.fillText("JOYEUX", w * 0.5, h * 0.44);
         ctx.fillText("NOEL",   w * 0.5, h * 0.56);
 
-        // border
         ctx.shadowBlur = 0;
         ctx.strokeStyle = "rgba(212,175,55,0.55)";
         ctx.lineWidth = 6;
@@ -438,103 +499,9 @@
     }
 
     // =========================================================
-    // Particle Class
+    // Particle system
     // =========================================================
     let PARTICLE_ID = 0;
-
-    class Particle {
-      constructor(mesh, opts = {}) {
-        this.id = PARTICLE_ID++;
-        this.mesh = mesh;
-        this.type = opts.type ?? "MAIN"; // MAIN | DUST | CANDY | PHOTO
-        this.baseScale = opts.baseScale ?? 1;
-        this.targetPos = new THREE.Vector3();
-        this.targetQuat = new THREE.Quaternion();
-        this.targetScale = new THREE.Vector3(this.baseScale, this.baseScale, this.baseScale);
-
-        this.vel = new THREE.Vector3(
-          (Math.random() - 0.5) * 0.8,
-          (Math.random() - 0.5) * 0.8,
-          (Math.random() - 0.5) * 0.8
-        );
-        this.spin = new THREE.Vector3(
-          (Math.random() - 0.5) * 1.4,
-          (Math.random() - 0.5) * 1.4,
-          (Math.random() - 0.5) * 1.4
-        );
-
-        this.scatterAnchor = randomInShell(8, 20);
-        this.treeIndexT = Math.random();
-        this.treePhase = Math.random() * Math.PI * 2;
-
-        this.mesh.userData.particleId = this.id;
-        this.mesh.userData.type = this.type;
-      }
-
-      update(dt, mode) {
-        // smooth position
-        this.mesh.position.lerp(this.targetPos, 1 - Math.pow(0.0007, dt)); // dt-based lerp
-
-        // smooth rotation
-        this.mesh.quaternion.slerp(this.targetQuat, 1 - Math.pow(0.001, dt));
-
-        // smooth scale
-        this.mesh.scale.lerp(this.targetScale, 1 - Math.pow(0.001, dt));
-
-        // scatter self-rotation requirement
-        if (mode === "SCATTER") {
-          this.mesh.rotation.x += this.spin.x * dt * 0.35;
-          this.mesh.rotation.y += this.spin.y * dt * 0.35;
-          this.mesh.rotation.z += this.spin.z * dt * 0.35;
-        }
-      }
-    }
-
-    // =========================================================
-    // Geometry + Materials (Content Generation)
-    // =========================================================
-    const goldStd = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(0xd4af37),
-      metalness: 1.0,
-      roughness: 0.18,
-      envMapIntensity: 1.2
-    });
-    const greenStd = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(0x0f2a18),
-      metalness: 0.85,
-      roughness: 0.4,
-      envMapIntensity: 1.0
-    });
-
-    const redPhys = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0xb90c1b),
-      metalness: 0.65,
-      roughness: 0.25,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.08,
-      envMapIntensity: 1.2
-    });
-    const goldPhys = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0xd4af37),
-      metalness: 1.0,
-      roughness: 0.16,
-      clearcoat: 0.6,
-      clearcoatRoughness: 0.12,
-      envMapIntensity: 1.3
-    });
-
-    const dustMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(0xfceea7),
-      metalness: 0.4,
-      roughness: 0.55,
-      transparent: true,
-      opacity: 0.35,
-      envMapIntensity: 0.8
-    });
-
-    const boxGeo = new THREE.BoxGeometry(0.38, 0.38, 0.38);
-    const sphereGeo = new THREE.SphereGeometry(0.28, 18, 18);
-    const dustGeo = new THREE.SphereGeometry(0.06, 10, 10);
 
     function randomInShell(rMin, rMax) {
       const u = Math.random();
@@ -549,93 +516,106 @@
       );
     }
 
-    function treeSpiralPosition(t, maxRadius = 10.5, height = 22.0) {
-      // Mode 1 spec:
-      // radius = maxRadius * (1 - t)
-      // angle = t * 50 * PI
-      const radius = maxRadius * (1 - t);
+    function treeSpiralPosition(t) {
+      const radius = TREE_RADIUS * (1 - t);
       const angle = t * 50 * Math.PI;
-      const y = -height * 0.5 + t * height;
-      return new THREE.Vector3(
-        Math.cos(angle) * radius,
-        y,
-        Math.sin(angle) * radius
-      );
+      const y = -TREE_HEIGHT / 2 + t * TREE_HEIGHT;
+      return new THREE.Vector3(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
     }
 
-    // Candy cane procedural geometry
+    class Particle {
+      constructor(mesh, opts = {}) {
+        this.id = PARTICLE_ID++;
+        this.mesh = mesh;
+        this.type = opts.type ?? "MAIN"; // MAIN | DUST | CANDY | PHOTO
+        this.baseScale = opts.baseScale ?? 1;
+
+        this.targetPos = new THREE.Vector3();
+        this.targetQuat = new THREE.Quaternion();
+        this.targetScale = new THREE.Vector3(this.baseScale, this.baseScale, this.baseScale);
+
+        this.vel = new THREE.Vector3((Math.random()-0.5)*0.8,(Math.random()-0.5)*0.8,(Math.random()-0.5)*0.8);
+        this.spin= new THREE.Vector3((Math.random()-0.5)*1.4,(Math.random()-0.5)*1.4,(Math.random()-0.5)*1.4);
+
+        this.scatterAnchor = randomInShell(8, 20);
+        this.treeIndexT = Math.random();
+        this.treePhase = Math.random() * Math.PI * 2;
+
+        this.mesh.userData.particleId = this.id;
+        this.mesh.userData.type = this.type;
+      }
+
+      update(dt, mode) {
+        this.mesh.position.lerp(this.targetPos, 1 - Math.pow(0.0007, dt));
+        this.mesh.quaternion.slerp(this.targetQuat, 1 - Math.pow(0.001, dt));
+        this.mesh.scale.lerp(this.targetScale, 1 - Math.pow(0.001, dt));
+
+        if (mode === "SCATTER") {
+          this.mesh.rotation.x += this.spin.x * dt * 0.35;
+          this.mesh.rotation.y += this.spin.y * dt * 0.35;
+          this.mesh.rotation.z += this.spin.z * dt * 0.35;
+        }
+      }
+    }
+
+    // Materials / geometries
+    const goldStd = new THREE.MeshStandardMaterial({ color:0xd4af37, metalness:1.0, roughness:0.18, envMapIntensity:1.2 });
+    const greenStd= new THREE.MeshStandardMaterial({ color:0x0f2a18, metalness:0.85, roughness:0.4, envMapIntensity:1.0 });
+
+    const redPhys = new THREE.MeshPhysicalMaterial({ color:0xb90c1b, metalness:0.65, roughness:0.25, clearcoat:1.0, clearcoatRoughness:0.08, envMapIntensity:1.2 });
+    const goldPhys= new THREE.MeshPhysicalMaterial({ color:0xd4af37, metalness:1.0, roughness:0.16, clearcoat:0.6, clearcoatRoughness:0.12, envMapIntensity:1.3 });
+
+    const dustMat = new THREE.MeshStandardMaterial({ color:0xfceea7, metalness:0.4, roughness:0.55, transparent:true, opacity:0.35, envMapIntensity:0.8 });
+
+    const boxGeo = new THREE.BoxGeometry(0.38, 0.38, 0.38);
+    const sphereGeo = new THREE.SphereGeometry(0.28, 18, 18);
+    const dustGeo = new THREE.SphereGeometry(0.06, 10, 10);
+
     function createCandyCaneMesh() {
       const tex = makeCandyStripeTexture();
       tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
       tex.repeat.set(2.5, 1.0);
 
       const mat = new THREE.MeshPhysicalMaterial({
-        map: tex,
-        color: new THREE.Color(0xffffff),
-        metalness: 0.15,
-        roughness: 0.25,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.08,
+        map: tex, color: 0xffffff,
+        metalness: 0.15, roughness: 0.25,
+        clearcoat: 1.0, clearcoatRoughness: 0.08,
         envMapIntensity: 1.2
       });
 
-      // Hook path with CatmullRomCurve3
       const pts = [];
       const stemLen = 3.2;
-      for (let i = 0; i < 7; i++) {
-        const y = -stemLen * 0.5 + (i / 6) * stemLen;
-        pts.push(new THREE.Vector3(0, y, 0));
-      }
-      // Hook arc
+      for (let i = 0; i < 7; i++) pts.push(new THREE.Vector3(0, -stemLen*0.5 + (i/6)*stemLen, 0));
+
       const hookRadius = 1.2;
       const hookCenterY = stemLen * 0.35;
       const hookStart = -Math.PI * 0.1;
       const hookEnd = Math.PI * 1.05;
       for (let i = 0; i <= 10; i++) {
-        const a = THREE.MathUtils.lerp(hookStart, hookEnd, i / 10);
-        const x = Math.cos(a) * hookRadius;
-        const y = hookCenterY + Math.sin(a) * hookRadius;
-        pts.push(new THREE.Vector3(x, y, 0));
+        const a = THREE.MathUtils.lerp(hookStart, hookEnd, i/10);
+        pts.push(new THREE.Vector3(Math.cos(a)*hookRadius, hookCenterY + Math.sin(a)*hookRadius, 0));
       }
 
       const curve = new THREE.CatmullRomCurve3(pts);
       const tube = new THREE.TubeGeometry(curve, 140, 0.18, 14, false);
-      const m = new THREE.Mesh(tube, mat);
-      m.castShadow = false;
-      m.receiveShadow = false;
-      return m;
+      return new THREE.Mesh(tube, mat);
     }
 
-    // Photo wall: frame + photo plane
     function createPhotoObject(texture) {
       texture.colorSpace = THREE.SRGBColorSpace;
 
       const group = new THREE.Group();
 
-      const frameMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(0xd4af37),
-        metalness: 1.0,
-        roughness: 0.2,
-        envMapIntensity: 1.2
-      });
+      const frameMat = new THREE.MeshStandardMaterial({ color:0xd4af37, metalness:1.0, roughness:0.2, envMapIntensity:1.2 });
 
       const w = 2.6, h = 1.8;
       const frameDepth = 0.22;
 
-      // Golden frame (BoxGeometry)
       const frameGeo = new THREE.BoxGeometry(w + 0.28, h + 0.28, frameDepth);
-      const frame = new THREE.Mesh(frameGeo, frameMat);
-      group.add(frame);
+      group.add(new THREE.Mesh(frameGeo, frameMat));
 
-      // Photo plane inset
-      const photoMat = new THREE.MeshStandardMaterial({
-        map: texture,
-        metalness: 0.1,
-        roughness: 0.65,
-        emissive: new THREE.Color(0x000000),
-        emissiveIntensity: 0.2
-      });
-      const photoGeo = new THREE.PlaneGeometry(w, h, 1, 1);
+      const photoMat = new THREE.MeshStandardMaterial({ map: texture, metalness:0.1, roughness:0.65, emissive:0x000000, emissiveIntensity:0.2 });
+      const photoGeo = new THREE.PlaneGeometry(w, h);
       const photo = new THREE.Mesh(photoGeo, photoMat);
       photo.position.z = frameDepth * 0.52;
       group.add(photo);
@@ -644,9 +624,6 @@
       return group;
     }
 
-    // =========================================================
-    // Build particles
-    // =========================================================
     const particles = [];
     const photos = [];
 
@@ -662,106 +639,80 @@
       const p = addParticle(photoObj, { type: "PHOTO", baseScale: 1.0 });
       photos.push(p);
 
-      // initial placement (scatter-ish)
       const s = randomInShell(10, 18);
       photoObj.position.copy(s);
       photoObj.rotation.y = (Math.random() - 0.5) * 0.8;
       photoObj.rotation.x = (Math.random() - 0.5) * 0.4;
     }
 
-    function buildMainParticles() {
-      // ~1500 main particles
+    function buildParticles() {
       const mainCount = 1500;
       for (let i = 0; i < mainCount; i++) {
         const choose = Math.random();
         let mesh;
 
         if (choose < 0.46) {
-          // BoxGeometry: gold / deep green MeshStandardMaterial
-          const mat = (Math.random() < 0.55) ? goldStd : greenStd;
-          mesh = new THREE.Mesh(boxGeo, mat);
+          mesh = new THREE.Mesh(boxGeo, (Math.random() < 0.55) ? goldStd : greenStd);
           mesh.scale.setScalar(THREE.MathUtils.lerp(0.6, 1.2, Math.random()));
         } else if (choose < 0.92) {
-          // SphereGeometry: gold / red MeshPhysicalMaterial (red w/ clearcoat)
-          const mat = (Math.random() < 0.5) ? goldPhys : redPhys;
-          mesh = new THREE.Mesh(sphereGeo, mat);
+          mesh = new THREE.Mesh(sphereGeo, (Math.random() < 0.5) ? goldPhys : redPhys);
           mesh.scale.setScalar(THREE.MathUtils.lerp(0.7, 1.25, Math.random()));
         } else {
-          // Candy cane
           mesh = createCandyCaneMesh();
           mesh.scale.setScalar(THREE.MathUtils.lerp(0.6, 1.0, Math.random()));
         }
 
         const type = (mesh.geometry && mesh.geometry.type === "TubeGeometry") ? "CANDY" : "MAIN";
         const p = addParticle(mesh, { type, baseScale: mesh.scale.x });
-        // Seed a consistent tree parameter
         p.treeIndexT = (i / (mainCount - 1)) * 0.98 + Math.random() * 0.02;
         p.treePhase = Math.random() * Math.PI * 2;
       }
 
-      // ~2500 dust particles
       const dustCount = 2500;
       for (let i = 0; i < dustCount; i++) {
         const m = new THREE.Mesh(dustGeo, dustMat);
         m.scale.setScalar(THREE.MathUtils.lerp(0.8, 1.6, Math.random()));
         const p = addParticle(m, { type: "DUST", baseScale: m.scale.x });
-        // Dust tends to be more spread
         p.scatterAnchor = randomInShell(12, 28);
         p.vel.multiplyScalar(0.5);
         p.spin.multiplyScalar(0.35);
       }
 
-      // Default photo
-      const defaultTex = makeDefaultPhotoTexture();
-      addPhotoToScene(defaultTex);
+      addPhotoToScene(makeDefaultPhotoTexture());
     }
 
-    // =========================================================
-    // Upload logic (MUST EXACTLY mirror the snippet)
-    // =========================================================
+    // Upload logic (MUST match your snippet)
     fileInput.addEventListener("change", (e) => {
       const f = e.target.files?.[0];
       if (!f) return;
 
       const reader = new FileReader();
-
       // 监听 input change 事件
       reader.onload = (ev) => {
         new THREE.TextureLoader().load(ev.target.result, (t) => {
           t.colorSpace = THREE.SRGBColorSpace; // 关键：指定色彩空间
           addPhotoToScene(t);
         });
-      };
+      }
       reader.readAsDataURL(f);
-
-      // reset input so same file can re-upload
       fileInput.value = "";
     });
 
     // =========================================================
-    // State Machine target computation
+    // State machine
     // =========================================================
-    const tmpVec = new THREE.Vector3();
-    const tmpQuat = new THREE.Quaternion();
-    const tmpEuler = new THREE.Euler();
+    const MODE_COOLDOWN = 700;
 
     function setMode(nextMode) {
       const now = performance.now();
-      // mild debounce to reduce flicker between gestures
-      if (now - STATE.lastModeChangeAt < 240) return;
+      if (now - STATE.lastModeChangeAt < MODE_COOLDOWN) return;
 
       if (STATE.mode !== nextMode) {
         STATE.mode = nextMode;
         STATE.lastModeChangeAt = now;
 
         if (nextMode === "FOCUS") {
-          // pick random photo as target
-          if (photos.length > 0) {
-            const pick = photos[Math.floor(Math.random() * photos.length)];
-            STATE.focusTargetId = pick.id;
-          } else {
-            STATE.focusTargetId = null;
-          }
+          STATE.focusTargetId = photos.length ? photos[Math.floor(Math.random() * photos.length)].id : null;
         } else {
           STATE.focusTargetId = null;
         }
@@ -770,17 +721,17 @@
 
     function computeTargets(dt) {
       const mode = STATE.mode;
-
-      // base oscillation for life
       const time = performance.now() * 0.001;
 
-      let focusParticle = null;
-      if (mode === "FOCUS" && STATE.focusTargetId != null) {
-        focusParticle = particles.find(p => p.id === STATE.focusTargetId) ?? null;
-      }
+      const focusParticle = (mode === "FOCUS" && STATE.focusTargetId != null)
+        ? (particles.find(p => p.id === STATE.focusTargetId) ?? null)
+        : null;
+
+      const tmpVec = new THREE.Vector3();
+      const tmpQuat = new THREE.Quaternion();
+      const tmpEuler = new THREE.Euler();
 
       for (const p of particles) {
-        // Default rotation target: gentle, facing outward-ish
         tmpEuler.set(
           Math.sin(time * 0.6 + p.treePhase) * 0.08,
           Math.cos(time * 0.5 + p.treePhase) * 0.12,
@@ -789,14 +740,11 @@
         tmpQuat.setFromEuler(tmpEuler);
 
         if (mode === "TREE") {
-          // Spiral cone tree
           const t = p.treeIndexT;
-          const pos = treeSpiralPosition(t, 11.0, 24.0);
+          const pos = treeSpiralPosition(t);
 
-          // Add subtle ring wobble, dust more airy
           if (p.type === "DUST") {
-            pos.x *= 1.18;
-            pos.z *= 1.18;
+            pos.x *= 1.18; pos.z *= 1.18;
             pos.y += Math.sin(time * 1.6 + p.treePhase) * 1.6;
           } else {
             pos.y += Math.sin(time * 0.9 + p.treePhase) * 0.22;
@@ -804,59 +752,44 @@
 
           p.targetPos.copy(pos);
 
-          // Look away from center a bit for sparkle
           tmpVec.copy(pos).normalize();
           tmpEuler.set(0, Math.atan2(tmpVec.x, tmpVec.z), 0);
           p.targetQuat.setFromEuler(tmpEuler).multiply(tmpQuat);
 
-          // scale
           const s = p.baseScale * (p.type === "DUST" ? 0.9 : 1.0);
           p.targetScale.setScalar(s);
 
         } else if (mode === "SCATTER") {
-          // Scatter in radius 8~20 (and dust wider)
-          if (p.type === "DUST") {
-            // dust: drift + wide field
-            p.scatterAnchor.addScaledVector(p.vel, dt * 0.9);
-            // keep in bounds softly
-            const r = p.scatterAnchor.length();
-            if (r > 32) p.scatterAnchor.multiplyScalar(0.75);
-            if (r < 10) p.scatterAnchor.multiplyScalar(1.15);
-            p.targetPos.copy(p.scatterAnchor);
-          } else {
-            // main scatter: slight motion along vel
-            p.scatterAnchor.addScaledVector(p.vel, dt * 0.55);
-            const r = p.scatterAnchor.length();
-            if (r > 22) p.scatterAnchor.multiplyScalar(0.82);
-            if (r < 7.5) p.scatterAnchor.multiplyScalar(1.18);
-            p.targetPos.copy(p.scatterAnchor);
-          }
+          const spd = (p.type === "DUST") ? 0.9 : 0.55;
+          const maxR = (p.type === "DUST") ? 32 : 22;
+          const minR = (p.type === "DUST") ? 10 : 7.5;
 
-          // in SCATTER, rotation must self-rotate by random speed vector (handled in update)
+          p.scatterAnchor.addScaledVector(p.vel, dt * spd);
+          const r = p.scatterAnchor.length();
+          if (r > maxR) p.scatterAnchor.multiplyScalar(0.82);
+          if (r < minR) p.scatterAnchor.multiplyScalar(1.18);
+
+          p.targetPos.copy(p.scatterAnchor);
           p.targetQuat.copy(tmpQuat);
-          p.targetScale.setScalar(p.baseScale * 1.0);
+          p.targetScale.setScalar(p.baseScale);
 
         } else if (mode === "FOCUS") {
-          // Focus a random PHOTO to camera front, others become background scatter
           if (focusParticle && p.id === focusParticle.id) {
             p.targetPos.set(0, 2, 35);
             p.targetQuat.identity();
             p.targetScale.setScalar(4.5);
           } else {
-            // background: spread out, but keep composition
-            const far = (p.type === "DUST") ? 30 : 24;
+            const far  = (p.type === "DUST") ? 30 : 24;
             const near = (p.type === "DUST") ? 14 : 12;
 
-            // reuse scatterAnchor but push away from center & camera
-            const base = p.scatterAnchor.clone().normalize().multiplyScalar(THREE.MathUtils.lerp(near, far, Math.random()*0.25 + 0.75));
+            const base = p.scatterAnchor.clone().normalize().multiplyScalar(
+              THREE.MathUtils.lerp(near, far, Math.random() * 0.25 + 0.75)
+            );
             base.y += (Math.random() - 0.5) * (p.type === "DUST" ? 10 : 6);
-            base.z -= 18; // move behind focus plane
+            base.z -= 18;
+
             p.targetPos.copy(base);
-
-            // smaller scale for depth
-            const s = p.baseScale * (p.type === "DUST" ? 0.7 : 0.85);
-            p.targetScale.setScalar(s);
-
+            p.targetScale.setScalar(p.baseScale * (p.type === "DUST" ? 0.7 : 0.85));
             p.targetQuat.copy(tmpQuat);
           }
         }
@@ -864,18 +797,89 @@
     }
 
     // =========================================================
-    // MediaPipe Hand Tracking
+    // Smarter gestures (scale-normalized + stable frames + hysteresis)
+    // =========================================================
+    const GESTURE_STABLE = { pinch: 0, fist: 0, open: 0 };
+    const STABLE_FRAMES = 6;
+
+    // Ratios (distance / palmScale)
+    const PINCH_RATIO_ON  = 0.35;
+    const PINCH_RATIO_OFF = 0.42;
+
+    const FIST_RATIO_ON   = 0.22;
+    const FIST_RATIO_OFF  = 0.28;
+
+    const OPEN_RATIO_ON   = 0.45;
+    const OPEN_RATIO_OFF  = 0.38;
+
+    // For smoother rotation mapping
+    let palmXSm = 0.5, palmYSm = 0.5;
+
+    function processGestures(landmarks) {
+      if (!landmarks || landmarks.length < 21) return;
+
+      // thumb(4), index(8), wrist(0), tips(12,16,20), palm center(9)
+      const wrist   = landmarks[0];
+      const thumb   = landmarks[4];
+      const index   = landmarks[8];
+      const midTip  = landmarks[12];
+      const ringTip = landmarks[16];
+      const pinkyTip= landmarks[20];
+      const palm    = landmarks[9];
+
+      // palmScale: hand width proxy between MCP index(5) and MCP pinky(17)
+      const palmScale = Math.max(1e-5, Math.hypot(landmarks[5].x - landmarks[17].x, landmarks[5].y - landmarks[17].y));
+
+      const pinchDist = Math.hypot(thumb.x - index.x, thumb.y - index.y);
+      const pinchRatio = pinchDist / palmScale;
+
+      const avgTipDist =
+        (Math.hypot(index.x - wrist.x, index.y - wrist.y) +
+         Math.hypot(midTip.x - wrist.x, midTip.y - wrist.y) +
+         Math.hypot(ringTip.x - wrist.x, ringTip.y - wrist.y) +
+         Math.hypot(pinkyTip.x - wrist.x, pinkyTip.y - wrist.y)) / 4;
+
+      const spreadRatio = avgTipDist / palmScale;
+
+      // hysteresis: use previous state to decide ON/OFF thresholds
+      const pinch = STATE.gesture.pinch ? (pinchRatio < PINCH_RATIO_OFF) : (pinchRatio < PINCH_RATIO_ON);
+      const fist  = STATE.gesture.fist  ? (spreadRatio < FIST_RATIO_OFF) : (spreadRatio < FIST_RATIO_ON);
+      const open  = STATE.gesture.open  ? (spreadRatio > OPEN_RATIO_OFF) : (spreadRatio > OPEN_RATIO_ON);
+
+      // smooth palm XY
+      palmXSm = THREE.MathUtils.lerp(palmXSm, palm.x, 0.25);
+      palmYSm = THREE.MathUtils.lerp(palmYSm, palm.y, 0.25);
+
+      STATE.gesture.pinch = pinch;
+      STATE.gesture.fist  = fist;
+      STATE.gesture.open  = open;
+      STATE.gesture.palmX = palmXSm;
+      STATE.gesture.palmY = palmYSm;
+
+      // stable frames
+      GESTURE_STABLE.pinch = pinch ? GESTURE_STABLE.pinch + 1 : 0;
+      GESTURE_STABLE.fist  = fist  ? GESTURE_STABLE.fist  + 1 : 0;
+      GESTURE_STABLE.open  = open  ? GESTURE_STABLE.open  + 1 : 0;
+
+      // priority: pinch > fist > open
+      if (GESTURE_STABLE.pinch >= STABLE_FRAMES) setMode("FOCUS");
+      else if (GESTURE_STABLE.fist >= STABLE_FRAMES) setMode("TREE");
+      else if (GESTURE_STABLE.open >= STABLE_FRAMES) setMode("SCATTER");
+    }
+
+    // =========================================================
+    // MediaPipe
     // =========================================================
     let handLandmarker = null;
     let mpReady = false;
     let lastVideoTime = -1;
 
     async function setupWebcam() {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-        audio: false
-      });
+      const constraints = { audio:false, video:{ facingMode:"user", width:{ideal:640}, height:{ideal:480} } };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = stream;
+      video.setAttribute("playsinline", "");
+      video.muted = true;
       await video.play();
     }
 
@@ -884,53 +888,26 @@
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
       );
 
-      handLandmarker = await HandLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: "hand_landmarker.task",
-          delegate: "GPU"
-        },
+      const common = {
+        baseOptions: { modelAssetPath: "hand_landmarker.task" }, // keep local (same dir)
         runningMode: "VIDEO",
         numHands: 1
-      });
+      };
+
+      try {
+        handLandmarker = await HandLandmarker.createFromOptions(vision, {
+          ...common,
+          baseOptions: { ...common.baseOptions, delegate: "GPU" }
+        });
+      } catch (e) {
+        console.warn("GPU delegate failed, fallback to CPU:", e);
+        handLandmarker = await HandLandmarker.createFromOptions(vision, {
+          ...common,
+          baseOptions: { ...common.baseOptions, delegate: "CPU" }
+        });
+      }
 
       mpReady = true;
-    }
-
-    function processGestures(landmarks) {
-      if (!landmarks || landmarks.length < 21) return;
-
-      // keypoints: thumb(4), index(8), wrist(0), other tips(12,16,20), palm center(9)
-      const wrist = landmarks[0];
-      const thumb = landmarks[4];
-      const index = landmarks[8];
-      const tips = [landmarks[12], landmarks[16], landmarks[20]];
-      const midTip = landmarks[12];
-      const ringTip = landmarks[16];
-      const pinkyTip = landmarks[20];
-      const palm = landmarks[9];
-
-      const pinchDist = Math.hypot(thumb.x - index.x, thumb.y - index.y);
-      const pinch = pinchDist < 0.05;
-
-      const avgDist =
-        (Math.hypot(midTip.x - wrist.x, midTip.y - wrist.y) +
-         Math.hypot(ringTip.x - wrist.x, ringTip.y - wrist.y) +
-         Math.hypot(pinkyTip.x - wrist.x, pinkyTip.y - wrist.y) +
-         Math.hypot(index.x - wrist.x, index.y - wrist.y)) / 4;
-
-      const fist = avgDist < 0.25;
-      const open = avgDist > 0.4;
-
-      STATE.gesture.pinch = pinch;
-      STATE.gesture.fist = fist;
-      STATE.gesture.open = open;
-      STATE.gesture.palmX = palm.x;
-      STATE.gesture.palmY = palm.y;
-
-      // Trigger modes
-      if (pinch) setMode("FOCUS");
-      else if (fist) setMode("TREE");
-      else if (open) setMode("SCATTER");
     }
 
     function updateHandTracking() {
@@ -940,7 +917,6 @@
       if (video.currentTime === lastVideoTime) return;
       lastVideoTime = video.currentTime;
 
-      // draw into 160x120 canvas for inference/debug
       inferCtx.drawImage(video, 0, 0, inferCanvas.width, inferCanvas.height);
 
       const results = handLandmarker.detectForVideo(video, nowInMs);
@@ -949,28 +925,24 @@
       if (hand) {
         processGestures(hand);
 
-        // map palm center (Landmark 9) normalized XY to mainGroup rotation
-        const nx = STATE.gesture.palmX; // 0..1
-        const ny = STATE.gesture.palmY; // 0..1
+        // map palm center (Landmark 9) normalized XY -> mainGroup rotation
+        const nx = STATE.gesture.palmX;
+        const ny = STATE.gesture.palmY;
 
         const targetRotY = (nx - 0.5) * 1.25;
         const targetRotX = (ny - 0.5) * 0.9;
 
-        // smooth rotation
         mainGroup.rotation.y = THREE.MathUtils.lerp(mainGroup.rotation.y, targetRotY, 0.08);
         mainGroup.rotation.x = THREE.MathUtils.lerp(mainGroup.rotation.x, -targetRotX, 0.08);
       } else {
-        // gentle idle
         mainGroup.rotation.y = THREE.MathUtils.lerp(mainGroup.rotation.y, Math.sin(performance.now()*0.0002)*0.2, 0.02);
         mainGroup.rotation.x = THREE.MathUtils.lerp(mainGroup.rotation.x, 0, 0.02);
       }
     }
 
     // =========================================================
-    // Animate
+    // Resize
     // =========================================================
-    const clock = new THREE.Clock();
-
     function onResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -980,6 +952,16 @@
     }
     window.addEventListener("resize", onResize);
 
+    function fadeOutLoader() {
+      loaderEl.classList.add("fade-out");
+      setTimeout(() => loaderEl.remove(), 1100);
+    }
+
+    // =========================================================
+    // Animate
+    // =========================================================
+    const clock = new THREE.Clock();
+
     function animate() {
       requestAnimationFrame(animate);
       const dt = Math.min(0.033, clock.getDelta());
@@ -987,10 +969,19 @@
       updateHandTracking();
       computeTargets(dt);
 
-      for (const p of particles) {
-        p.update(dt, STATE.mode);
+      // Star twinkle + gentle rotation
+      {
+        const t = performance.now() * 0.001;
+        TREE_TOP.star.rotation.y += 0.35 * dt;
+        TREE_TOP.star.rotation.x = Math.sin(t * 0.8) * 0.12;
+        TREE_TOP.star.rotation.z = Math.cos(t * 0.6) * 0.10;
+
+        const tw = 1.0 + 0.35 * Math.sin(t * 3.0) + 0.15 * Math.sin(t * 7.0);
+        TREE_TOP.star.material.emissiveIntensity = 1.0 + tw * 0.65;
+        TREE_TOP.light.intensity = 1.6 + tw * 1.25;
       }
 
+      for (const p of particles) p.update(dt, STATE.mode);
       composer.render();
     }
 
@@ -998,25 +989,24 @@
     // Boot
     // =========================================================
     async function init() {
-      buildMainParticles();
-
-      // Start render loop immediately so something moves while CV loads
+      buildParticles();
+      fadeOutLoader();
       animate();
 
-      // CV setup (async)
+      // helpful hint
+      showToast("Tips", "BGM: 点击 MUSIC。手势：张开=散落，握拳=成树，捏合=看照片", 7000);
+
       try {
         await setupWebcam();
         await setupMediaPipe();
-      } catch (err) {
-        console.warn("MediaPipe/Webcam init failed:", err);
+      } catch (e) {
+        console.warn("MediaPipe/Webcam init failed:", e);
+        showToast(
+          "Gestures Disabled",
+          "摄像头或模型加载失败：请用 HTTPS（GitHub Pages）打开，并把 hand_landmarker.task 放在 HTML 同目录。",
+          10000
+        );
       }
-
-      // Fade out loader once initialized
-      loaderEl.classList.add("fade-out");
-      setTimeout(() => loaderEl.remove(), 1100);
-
-      // Start in TREE mode
-      setMode("TREE");
     }
 
     init();
