@@ -296,7 +296,6 @@
     const bgm = document.createElement("audio");
     bgm.loop = true;
     bgm.preload = "auto";
-    // Try common extensions, keeping base name "my_bgm"
     for (const src of ["my_bgm.mp3", "my_bgm.m4a", "my_bgm.ogg", "my_bgm"]) {
       const s = document.createElement("source");
       s.src = src;
@@ -780,11 +779,15 @@
     }
 
     // =========================================================
-    // Smarter gestures (pinch + open + fist fusion)
+    // Gestures (fixed: fist won't trigger pinch)
     // =========================================================
     const GESTURE_STABLE = { pinch: 0, fist: 0, open: 0 };
     const STABLE_FRAMES = 6;
     const FIST_STABLE_FRAMES = 4;
+    const PINCH_STABLE_FRAMES = 7;
+
+    const PINCH_BLOCK_MS = 900;
+    let lastFistAt = 0;
 
     let palmXSm = 0.5, palmYSm = 0.5;
 
@@ -804,7 +807,6 @@
       const ringTip  = landmarks[16];
       const pinkyTip = landmarks[20];
 
-      // MCP/PIP for curl
       const indexMCP = landmarks[5],  indexPIP = landmarks[6];
       const midMCP   = landmarks[9],  midPIP   = landmarks[10];
       const ringMCP  = landmarks[13], ringPIP  = landmarks[14];
@@ -814,10 +816,10 @@
 
       const palmScale = Math.max(1e-5, dist2(indexMCP, pinkyMCP));
 
-      // 1) pinch ratio
+      // pinch ratio
       const pinchRatio = dist2(thumbTip, indexTip) / palmScale;
 
-      // 2) spread ratio
+      // spread ratio
       const avgTipDist =
         (dist2(indexTip, wrist) +
          dist2(midTip, wrist) +
@@ -825,7 +827,7 @@
          dist2(pinkyTip, wrist)) / 4;
       const spreadRatio = avgTipDist / palmScale;
 
-      // 3) finger curl avg
+      // curl avg
       function fingerCurl(tip, pip, mcp) {
         const dP = Math.max(1e-5, dist2(pip, mcp));
         const dT = dist2(tip, mcp);
@@ -839,24 +841,42 @@
          fingerCurl(pinkyTip, pinkyPIP, pinkyMCP)) / 4;
 
       // thresholds + hysteresis
-      const PINCH_ON  = 0.35, PINCH_OFF = 0.42;
+      const PINCH_ON  = 0.33, PINCH_OFF = 0.40;
       const OPEN_ON   = 0.48, OPEN_OFF  = 0.40;
 
       const FIST_SPREAD_ON  = 0.26, FIST_SPREAD_OFF = 0.32;
       const FIST_CURL_ON    = 0.58, FIST_CURL_OFF   = 0.48;
 
+      // smooth palm
       palmXSm = THREE.MathUtils.lerp(palmXSm, palm.x, 0.25);
       palmYSm = THREE.MathUtils.lerp(palmYSm, palm.y, 0.25);
 
-      const pinch = STATE.gesture.pinch ? (pinchRatio < PINCH_OFF) : (pinchRatio < PINCH_ON);
-      const open  = STATE.gesture.open  ? (spreadRatio > OPEN_OFF) : (spreadRatio > OPEN_ON);
+      const open = STATE.gesture.open
+        ? (spreadRatio > OPEN_OFF)
+        : (spreadRatio > OPEN_ON);
 
+      // fist first (so pinch can be gated by fist)
       let fist;
       if (STATE.gesture.fist) {
         fist = (spreadRatio < FIST_SPREAD_OFF) || (curlAvg > FIST_CURL_OFF);
       } else {
         fist = (spreadRatio < FIST_SPREAD_ON)  || (curlAvg > FIST_CURL_ON);
       }
+
+      const now = performance.now();
+      if (fist) lastFistAt = now;
+
+      // pinch gate: prevent fist -> pinch misfire
+      const pinchCandidate = (pinchRatio < PINCH_ON);
+      const pinchGate =
+        (!fist) &&
+        (curlAvg < 0.45) &&          // fingers mostly extended
+        (spreadRatio > 0.34) &&      // not too closed
+        ((now - lastFistAt) > PINCH_BLOCK_MS);
+
+      const pinch = STATE.gesture.pinch
+        ? ((pinchRatio < PINCH_OFF) && pinchGate)
+        : (pinchCandidate && pinchGate);
 
       STATE.gesture.pinch = pinch;
       STATE.gesture.open  = open;
@@ -868,7 +888,7 @@
       GESTURE_STABLE.fist  = fist  ? GESTURE_STABLE.fist  + 1 : 0;
       GESTURE_STABLE.open  = open  ? GESTURE_STABLE.open  + 1 : 0;
 
-      if (GESTURE_STABLE.pinch >= STABLE_FRAMES) setMode("FOCUS");
+      if (GESTURE_STABLE.pinch >= PINCH_STABLE_FRAMES) setMode("FOCUS");
       else if (GESTURE_STABLE.fist >= FIST_STABLE_FRAMES) setMode("TREE");
       else if (GESTURE_STABLE.open >= STABLE_FRAMES) setMode("SCATTER");
     }
@@ -972,6 +992,7 @@
       updateHandTracking();
       computeTargets(dt);
 
+      // Star twinkle + rotation
       {
         const t = performance.now() * 0.001;
         TREE_TOP.star.rotation.y += 0.35 * dt;
@@ -995,7 +1016,7 @@
       fadeOutLoader();
       animate();
 
-      showToast("Tips", "BGM: 点 MUSIC。手势：张开=散落，握拳=成树，捏合=看照片", 8000);
+      showToast("Tips", "BGM: 点 MUSIC。手势：张开=散落，握拳=成树（更优先），捏合=看照片", 9000);
 
       try {
         await setupWebcam();
