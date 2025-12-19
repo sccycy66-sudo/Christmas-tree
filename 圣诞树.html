@@ -290,43 +290,35 @@
     });
 
     // =========================================================
-    // Local BGM: my_bgm (place next to this HTML)
-    // Files recommended: my_bgm.mp3 (or .m4a/.ogg)
+    // Local BGM: "my_bgm" (place next to this HTML)
+    // Recommended: my_bgm.mp3 (or .m4a/.ogg)
     // =========================================================
     const bgm = document.createElement("audio");
     bgm.loop = true;
     bgm.preload = "auto";
-
-    // Try common extensions; keep "my_bgm" as last fallback
+    // Try common extensions, keeping base name "my_bgm"
     for (const src of ["my_bgm.mp3", "my_bgm.m4a", "my_bgm.ogg", "my_bgm"]) {
       const s = document.createElement("source");
       s.src = src;
       bgm.appendChild(s);
     }
-
     let bgmReady = false;
     bgm.addEventListener("canplaythrough", () => { bgmReady = true; }, { once: true });
     bgm.addEventListener("error", () => {
-      // Not fatal; user might not have provided an extension. We'll still allow attempt on click.
-      if (!bgmReady) showToast("BGM Missing", "没找到 my_bgm 音频文件。请把 my_bgm.mp3（推荐）放到和 HTML 同目录。", 8000);
+      if (!bgmReady) showToast("BGM Missing", "没找到 my_bgm 音频文件。请把 my_bgm.mp3（推荐）放到和 HTML 同目录。", 9000);
     });
-
-    // Warm up audio on first gesture (prevents “no sound” on mobile)
-    window.addEventListener("pointerdown", () => {
-      // No-op: just ensures the first user gesture exists before play()
-    }, { once: true });
 
     musicBtn.addEventListener("click", async () => {
       try {
         if (bgm.paused) {
-          await bgm.play(); // must be user gesture
+          await bgm.play();
           musicBtn.textContent = "MUSIC: ON";
         } else {
           bgm.pause();
           musicBtn.textContent = "MUSIC: OFF";
         }
       } catch (e) {
-        showToast("Audio Blocked", "浏览器阻止自动播放：请再点一次 MUSIC，或先点一下页面再点 MUSIC。", 7000);
+        showToast("Audio Blocked", "浏览器阻止自动播放：请先点一下页面，再点 MUSIC。", 7000);
       }
     });
 
@@ -561,10 +553,8 @@
     // Materials / geometries
     const goldStd = new THREE.MeshStandardMaterial({ color:0xd4af37, metalness:1.0, roughness:0.18, envMapIntensity:1.2 });
     const greenStd= new THREE.MeshStandardMaterial({ color:0x0f2a18, metalness:0.85, roughness:0.4, envMapIntensity:1.0 });
-
     const redPhys = new THREE.MeshPhysicalMaterial({ color:0xb90c1b, metalness:0.65, roughness:0.25, clearcoat:1.0, clearcoatRoughness:0.08, envMapIntensity:1.2 });
     const goldPhys= new THREE.MeshPhysicalMaterial({ color:0xd4af37, metalness:1.0, roughness:0.16, clearcoat:0.6, clearcoatRoughness:0.12, envMapIntensity:1.3 });
-
     const dustMat = new THREE.MeshStandardMaterial({ color:0xfceea7, metalness:0.4, roughness:0.55, transparent:true, opacity:0.35, envMapIntensity:0.8 });
 
     const boxGeo = new THREE.BoxGeometry(0.38, 0.38, 0.38);
@@ -605,18 +595,15 @@
       texture.colorSpace = THREE.SRGBColorSpace;
 
       const group = new THREE.Group();
-
       const frameMat = new THREE.MeshStandardMaterial({ color:0xd4af37, metalness:1.0, roughness:0.2, envMapIntensity:1.2 });
 
       const w = 2.6, h = 1.8;
       const frameDepth = 0.22;
 
-      const frameGeo = new THREE.BoxGeometry(w + 0.28, h + 0.28, frameDepth);
-      group.add(new THREE.Mesh(frameGeo, frameMat));
+      group.add(new THREE.Mesh(new THREE.BoxGeometry(w + 0.28, h + 0.28, frameDepth), frameMat));
 
       const photoMat = new THREE.MeshStandardMaterial({ map: texture, metalness:0.1, roughness:0.65, emissive:0x000000, emissiveIntensity:0.2 });
-      const photoGeo = new THREE.PlaneGeometry(w, h);
-      const photo = new THREE.Mesh(photoGeo, photoMat);
+      const photo = new THREE.Mesh(new THREE.PlaneGeometry(w, h), photoMat);
       photo.position.z = frameDepth * 0.52;
       group.add(photo);
 
@@ -702,7 +689,6 @@
     // State machine
     // =========================================================
     const MODE_COOLDOWN = 700;
-
     function setMode(nextMode) {
       const now = performance.now();
       if (now - STATE.lastModeChangeAt < MODE_COOLDOWN) return;
@@ -740,9 +726,7 @@
         tmpQuat.setFromEuler(tmpEuler);
 
         if (mode === "TREE") {
-          const t = p.treeIndexT;
-          const pos = treeSpiralPosition(t);
-
+          const pos = treeSpiralPosition(p.treeIndexT);
           if (p.type === "DUST") {
             pos.x *= 1.18; pos.z *= 1.18;
             pos.y += Math.sin(time * 1.6 + p.treePhase) * 1.6;
@@ -756,8 +740,7 @@
           tmpEuler.set(0, Math.atan2(tmpVec.x, tmpVec.z), 0);
           p.targetQuat.setFromEuler(tmpEuler).multiply(tmpQuat);
 
-          const s = p.baseScale * (p.type === "DUST" ? 0.9 : 1.0);
-          p.targetScale.setScalar(s);
+          p.targetScale.setScalar(p.baseScale * (p.type === "DUST" ? 0.9 : 1.0));
 
         } else if (mode === "SCATTER") {
           const spd = (p.type === "DUST") ? 0.9 : 0.55;
@@ -797,73 +780,96 @@
     }
 
     // =========================================================
-    // Smarter gestures (scale-normalized + stable frames + hysteresis)
+    // Smarter gestures (pinch + open + fist fusion)
     // =========================================================
     const GESTURE_STABLE = { pinch: 0, fist: 0, open: 0 };
     const STABLE_FRAMES = 6;
+    const FIST_STABLE_FRAMES = 4;
 
-    // Ratios (distance / palmScale)
-    const PINCH_RATIO_ON  = 0.35;
-    const PINCH_RATIO_OFF = 0.42;
-
-    const FIST_RATIO_ON   = 0.22;
-    const FIST_RATIO_OFF  = 0.28;
-
-    const OPEN_RATIO_ON   = 0.45;
-    const OPEN_RATIO_OFF  = 0.38;
-
-    // For smoother rotation mapping
     let palmXSm = 0.5, palmYSm = 0.5;
+
+    function dist2(a, b) {
+      const dx = a.x - b.x, dy = a.y - b.y;
+      return Math.hypot(dx, dy);
+    }
 
     function processGestures(landmarks) {
       if (!landmarks || landmarks.length < 21) return;
 
-      // thumb(4), index(8), wrist(0), tips(12,16,20), palm center(9)
-      const wrist   = landmarks[0];
-      const thumb   = landmarks[4];
-      const index   = landmarks[8];
-      const midTip  = landmarks[12];
-      const ringTip = landmarks[16];
-      const pinkyTip= landmarks[20];
-      const palm    = landmarks[9];
+      const wrist = landmarks[0];
 
-      // palmScale: hand width proxy between MCP index(5) and MCP pinky(17)
-      const palmScale = Math.max(1e-5, Math.hypot(landmarks[5].x - landmarks[17].x, landmarks[5].y - landmarks[17].y));
+      const thumbTip = landmarks[4];
+      const indexTip = landmarks[8];
+      const midTip   = landmarks[12];
+      const ringTip  = landmarks[16];
+      const pinkyTip = landmarks[20];
 
-      const pinchDist = Math.hypot(thumb.x - index.x, thumb.y - index.y);
-      const pinchRatio = pinchDist / palmScale;
+      // MCP/PIP for curl
+      const indexMCP = landmarks[5],  indexPIP = landmarks[6];
+      const midMCP   = landmarks[9],  midPIP   = landmarks[10];
+      const ringMCP  = landmarks[13], ringPIP  = landmarks[14];
+      const pinkyMCP = landmarks[17], pinkyPIP = landmarks[18];
 
+      const palm = landmarks[9];
+
+      const palmScale = Math.max(1e-5, dist2(indexMCP, pinkyMCP));
+
+      // 1) pinch ratio
+      const pinchRatio = dist2(thumbTip, indexTip) / palmScale;
+
+      // 2) spread ratio
       const avgTipDist =
-        (Math.hypot(index.x - wrist.x, index.y - wrist.y) +
-         Math.hypot(midTip.x - wrist.x, midTip.y - wrist.y) +
-         Math.hypot(ringTip.x - wrist.x, ringTip.y - wrist.y) +
-         Math.hypot(pinkyTip.x - wrist.x, pinkyTip.y - wrist.y)) / 4;
-
+        (dist2(indexTip, wrist) +
+         dist2(midTip, wrist) +
+         dist2(ringTip, wrist) +
+         dist2(pinkyTip, wrist)) / 4;
       const spreadRatio = avgTipDist / palmScale;
 
-      // hysteresis: use previous state to decide ON/OFF thresholds
-      const pinch = STATE.gesture.pinch ? (pinchRatio < PINCH_RATIO_OFF) : (pinchRatio < PINCH_RATIO_ON);
-      const fist  = STATE.gesture.fist  ? (spreadRatio < FIST_RATIO_OFF) : (spreadRatio < FIST_RATIO_ON);
-      const open  = STATE.gesture.open  ? (spreadRatio > OPEN_RATIO_OFF) : (spreadRatio > OPEN_RATIO_ON);
+      // 3) finger curl avg
+      function fingerCurl(tip, pip, mcp) {
+        const dP = Math.max(1e-5, dist2(pip, mcp));
+        const dT = dist2(tip, mcp);
+        const raw = (dP - dT) / dP;
+        return THREE.MathUtils.clamp(raw, 0, 1);
+      }
+      const curlAvg =
+        (fingerCurl(indexTip, indexPIP, indexMCP) +
+         fingerCurl(midTip,   midPIP,   midMCP) +
+         fingerCurl(ringTip,  ringPIP,  ringMCP) +
+         fingerCurl(pinkyTip, pinkyPIP, pinkyMCP)) / 4;
 
-      // smooth palm XY
+      // thresholds + hysteresis
+      const PINCH_ON  = 0.35, PINCH_OFF = 0.42;
+      const OPEN_ON   = 0.48, OPEN_OFF  = 0.40;
+
+      const FIST_SPREAD_ON  = 0.26, FIST_SPREAD_OFF = 0.32;
+      const FIST_CURL_ON    = 0.58, FIST_CURL_OFF   = 0.48;
+
       palmXSm = THREE.MathUtils.lerp(palmXSm, palm.x, 0.25);
       palmYSm = THREE.MathUtils.lerp(palmYSm, palm.y, 0.25);
 
+      const pinch = STATE.gesture.pinch ? (pinchRatio < PINCH_OFF) : (pinchRatio < PINCH_ON);
+      const open  = STATE.gesture.open  ? (spreadRatio > OPEN_OFF) : (spreadRatio > OPEN_ON);
+
+      let fist;
+      if (STATE.gesture.fist) {
+        fist = (spreadRatio < FIST_SPREAD_OFF) || (curlAvg > FIST_CURL_OFF);
+      } else {
+        fist = (spreadRatio < FIST_SPREAD_ON)  || (curlAvg > FIST_CURL_ON);
+      }
+
       STATE.gesture.pinch = pinch;
-      STATE.gesture.fist  = fist;
       STATE.gesture.open  = open;
+      STATE.gesture.fist  = fist;
       STATE.gesture.palmX = palmXSm;
       STATE.gesture.palmY = palmYSm;
 
-      // stable frames
       GESTURE_STABLE.pinch = pinch ? GESTURE_STABLE.pinch + 1 : 0;
       GESTURE_STABLE.fist  = fist  ? GESTURE_STABLE.fist  + 1 : 0;
       GESTURE_STABLE.open  = open  ? GESTURE_STABLE.open  + 1 : 0;
 
-      // priority: pinch > fist > open
       if (GESTURE_STABLE.pinch >= STABLE_FRAMES) setMode("FOCUS");
-      else if (GESTURE_STABLE.fist >= STABLE_FRAMES) setMode("TREE");
+      else if (GESTURE_STABLE.fist >= FIST_STABLE_FRAMES) setMode("TREE");
       else if (GESTURE_STABLE.open >= STABLE_FRAMES) setMode("SCATTER");
     }
 
@@ -889,7 +895,7 @@
       );
 
       const common = {
-        baseOptions: { modelAssetPath: "hand_landmarker.task" }, // keep local (same dir)
+        baseOptions: { modelAssetPath: "hand_landmarker.task" },
         runningMode: "VIDEO",
         numHands: 1
       };
@@ -900,13 +906,11 @@
           baseOptions: { ...common.baseOptions, delegate: "GPU" }
         });
       } catch (e) {
-        console.warn("GPU delegate failed, fallback to CPU:", e);
         handLandmarker = await HandLandmarker.createFromOptions(vision, {
           ...common,
           baseOptions: { ...common.baseOptions, delegate: "CPU" }
         });
       }
-
       mpReady = true;
     }
 
@@ -925,7 +929,6 @@
       if (hand) {
         processGestures(hand);
 
-        // map palm center (Landmark 9) normalized XY -> mainGroup rotation
         const nx = STATE.gesture.palmX;
         const ny = STATE.gesture.palmY;
 
@@ -969,7 +972,6 @@
       updateHandTracking();
       computeTargets(dt);
 
-      // Star twinkle + gentle rotation
       {
         const t = performance.now() * 0.001;
         TREE_TOP.star.rotation.y += 0.35 * dt;
@@ -993,8 +995,7 @@
       fadeOutLoader();
       animate();
 
-      // helpful hint
-      showToast("Tips", "BGM: 点击 MUSIC。手势：张开=散落，握拳=成树，捏合=看照片", 7000);
+      showToast("Tips", "BGM: 点 MUSIC。手势：张开=散落，握拳=成树，捏合=看照片", 8000);
 
       try {
         await setupWebcam();
